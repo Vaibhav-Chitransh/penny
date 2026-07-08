@@ -13,6 +13,7 @@ const userSchema = new mongoose.Schema<IUser>({
         type: String,
         required: true,
         unique: true,
+        index: true,
     },
 
     email: {
@@ -23,10 +24,12 @@ const userSchema = new mongoose.Schema<IUser>({
 
     firstName: {
         type: String,
+        default: "",
     },
 
     lastName: {
         type: String,
+        default: "",
     },
 
     imageUrl: {
