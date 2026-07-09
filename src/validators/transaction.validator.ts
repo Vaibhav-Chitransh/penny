@@ -9,3 +9,13 @@ export const CreateTransactionSchema = z.object({
 });
 
 export type CreateTransactionInput = z.infer<typeof CreateTransactionSchema>;
+
+export const UpdateTransactionSchema = z.object({
+    type: z.enum(["income", "expense"]).optional(),
+    amount: z.number().positive().optional(),
+    category: z.string().optional(),
+    note: z.string().trim().max(200).optional(),
+    date: z.coerce.date().optional()
+}).strict();
+
+export type UpdateTransactionInput = z.infer<typeof UpdateTransactionSchema>;
