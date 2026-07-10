@@ -57,3 +57,33 @@ export async function PATCH(req: NextRequest, {params} : {params: Promise<{id: s
         return errorResponse("Internal server error", error, 500);
     }
 }
+
+export async function DELETE(req: NextRequest, {params} : {params: Promise<{id: string}>}) {
+    try {
+        // gettting transaction id from url
+        const {id} = await params;
+
+        // authenticate user
+        const {userId} = await auth();
+        if(!userId) return errorResponse("Unauthorized", null, 401);
+
+        // validate transaction id
+        if(!mongoose.Types.ObjectId.isValid(id)) return errorResponse("Invalid Transaction id", null, 400);
+
+        // connect database
+        connectDB();
+
+        // find mongo user
+        const mongoUser = await User.findOne({clerkId: userId}).select("_id");
+        if(!mongoUser) return errorResponse("User not found", null, 404);
+
+        // delete transaction
+        const deletedTransaction = await Transaction.findOneAndDelete({_id: id, user: mongoUser._id});
+        if(!deletedTransaction) return errorResponse("Transaction not found", null, 404);
+
+        return successResponse("Transaction deleted successfully", null, 200);
+    } catch (error) {
+        console.error("Delete Transaction error: ", error);
+        return errorResponse("Internal Server error", error, 500);
+    }
+}
