@@ -87,3 +87,33 @@ export async function DELETE(req: NextRequest, {params} : {params: Promise<{id: 
         return errorResponse("Internal Server error", error, 500);
     }
 }
+
+export async function GET(req : NextRequest, {params}: {params: Promise<{id: string}>}) {
+    try {
+        // get transaction id
+        const {id} = await params;
+
+        // authenticate user
+        const {userId} = await auth();
+        if(!userId) return errorResponse("Unauthrorized", null, 401);
+
+        // validate id
+        if(!mongoose.Types.ObjectId.isValid(id)) return errorResponse("Invalid transaction id", null, 400);
+
+        // connect database
+        connectDB();
+
+        // find current user
+        const mongoUser = await User.findOne({clerkId: userId}).select("_id");
+        if(!mongoUser) return errorResponse("User not found", null, 404);
+
+        // find transaction of current user
+        const transaction = await Transaction.findOne({_id: id, user: mongoUser._id}).populate("category");
+        if(!transaction) return errorResponse("Transaction not found", null, 404);
+
+        return successResponse("Transaction fetched successfully", transaction);
+    } catch (error) {
+        console.error("Get Transaction error: ", error);
+        return errorResponse("Internal Server error", error, 500);
+    }
+}
