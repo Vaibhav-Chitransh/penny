@@ -39,3 +39,26 @@ export async function POST(req: NextRequest) {
         return errorResponse("Internal Server error", error, 500);
     }
 }
+
+export async function GET(req: NextRequest) {
+    try {
+        // authenticate user
+        const {userId} = await auth();
+        if(!userId) return errorResponse("Unauthorized", null, 401);
+
+        // connect database
+        connectDB();
+
+        // find current user
+        const mongoUser = await User.findOne({clerkId: userId}).select("_id");
+        if(!mongoUser) return errorResponse("User not found", null, 404);
+
+        // fetch user categories
+        const categories = await Category.find({user: mongoUser._id}).sort({createdAt: 1}).lean();
+
+        return successResponse("Categories fetched successfully", categories);
+    } catch (error) {
+        console.error("Get categories error: ", error);
+        return errorResponse("Internal Server error", error, 500);
+    }
+}
